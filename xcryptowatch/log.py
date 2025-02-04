@@ -7,14 +7,14 @@ import sys
 if not os.path.exists('logs'):
     os.makedirs('logs')
 
-def setup_logger(name, log_file, level=logging.INFO):
+def setup_logger(name, log_file, level=logging.DEBUG):
     """Set up a new logger with consistent formatting"""
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     
-    file_handler = logging.FileHandler(f'logs/{log_file}', delay=False)
+    file_handler = logging.FileHandler(f'logs/{log_file}', delay=False, encoding="utf-8")
     file_handler.setFormatter(formatter)
     
     console_handler = logging.StreamHandler(sys.stdout)
@@ -30,4 +30,7 @@ def setup_logger(name, log_file, level=logging.INFO):
     return logger
 
 # Main application logger
-app_logger = setup_logger('xcryptowatch', 'xcryptowatch.log')
+main_logger = setup_logger('xcryptowatch', 'xcryptowatch.log')
+twitter_logger = setup_logger('xcryptowatch_twitter', 'twitter.log')
+gpt_logger = setup_logger('xcryptowatch_gpt', 'gpt.log')
+postal_logger = setup_logger('xcryptowatch_postal', "postal.log")
