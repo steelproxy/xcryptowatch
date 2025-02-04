@@ -59,12 +59,12 @@ def watch_tweets(client, config):
 def _process_tweet(config, tweet, account, start_time):
     username = account['username']
     
-    if tweet.id not in watched_tweets:
+    if tweet.created_at > start_time and tweet.id not in watched_tweets:
         try:
             logger.info(f"Tweet analysis started: {tweet.text}")
+            watched_tweets.append(tweet.id)
             if len(watched_tweets) > 10 * len(config['watch_accounts']):
                 watched_tweets = watched_tweets[-(10 * len(config['watch_accounts'])):]
-            watched_tweets.append(tweet.id)
             analysis = gpt.analyze_tweet(tweet)
 
             if not analysis:
