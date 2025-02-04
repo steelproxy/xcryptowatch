@@ -1,12 +1,12 @@
 import datetime
-import gpt
+import xcryptowatch.gpt as gpt
 import time
 import tweepy
 import tweepy.errors
-import postal
+import xcryptowatch.postal as postal
 import datetime
 from datetime import timedelta
-from log import twitter_logger as logger
+from xcryptowatch.log import twitter_logger as logger
 
 CHECK_INTERVAL = 15
 

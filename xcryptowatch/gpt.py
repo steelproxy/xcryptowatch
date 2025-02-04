@@ -1,5 +1,5 @@
 import openai
-from log import gpt_logger as logger
+from xcryptowatch.log import gpt_logger as logger
 
 __chatgpt_role__ = ("You are a helpful assistant that analyzes tweets to determine if they mention cryptocurrency "
           "and assess their sentiment. "

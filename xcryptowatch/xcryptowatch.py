@@ -1,10 +1,9 @@
 import tweepy
-import postal
 import postalsend
 import openai
-from config_json import create_config, _save_config, load_config, add_new_account, add_new_recipient
-from twitter import watch_tweets
-from log import main_logger as logger
+from xcryptowatch.config_json import create_config, _save_config, load_config, add_new_account, add_new_recipient
+from xcryptowatch.twitter import watch_tweets
+from xcryptowatch.log import main_logger as logger
 
 def main():
     logger.info(f"Starting xcryptowatch...")

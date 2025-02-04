@@ -2,7 +2,7 @@ import json
 import jsonschema
 import sys
 import os
-from log import main_logger as logger
+from xcryptowatch.log import main_logger as logger
 
 __version__ = "0.1.0"
 __config_file__ = "config.json"

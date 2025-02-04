@@ -1,5 +1,5 @@
 import postalsend
-from log import postal_logger as logger
+from xcryptowatch.log import postal_logger as logger
 
 def send_analysis(analysis, config):
     logger.info(f"Sending analysis to Postal API...")
