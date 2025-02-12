@@ -9,7 +9,7 @@ import asyncio
 
 async def watch_tweets(client, config):
     watched_tweets = []
-    await mail.status_update(f"Starting new watch at {datetime.datetime.now(datetime.timezone.utc)}.")
+    await mail.status_update(f"Starting new twitter watch at {datetime.datetime.now(datetime.timezone.utc)}.", config)
     
     while True:
         start_time = datetime.datetime.now(datetime.timezone.utc) # - timedelta(days=7)

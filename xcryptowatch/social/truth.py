@@ -6,7 +6,7 @@ from xcryptowatch.gpt import analyze_posts_concurrently
 
 async def watch_truths(client, config):
     watched_posts = []
-    await mail.status_update(f"Starting new watch at {datetime.datetime.now(datetime.timezone.utc)}.", config)
+    await mail.status_update(f"Starting new truth watch at {datetime.datetime.now(datetime.timezone.utc)}.", config)
 
     while True:
         start_time = datetime.datetime.now(datetime.timezone.utc)

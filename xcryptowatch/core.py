@@ -14,33 +14,64 @@ async def main():
     config = _setup_config()
     twitter_client, truth_client = _setup_api(config)
     logger.info("Initialized successfully!")
+
+    twitter_task = None
+    truth_task = None
+
     
     while True:
         print("Hint: CTRL+C to exit.\n" +
-              "1: Watch for tweets.\n" +
-              "2: Watch for truths.\n" +
-              "3: Add a new account to watch.\n" +
-              "4: Add a new recipient to notify.\n" +
-              "5: Configure XCryptoWatch")
+              "1: Start watching tweets\n" +
+              "2: Stop watching tweets\n" +
+              "3: Start watching truths\n" +
+              "4: Stop watching truths\n" +
+              "5: Add a new account to watch\n" +
+              "6: Add a new recipient to notify\n" +
+              "7: Configure XCryptoWatch")
         try:
-            choice = input("Please select an option: ")
-            if choice not in ["1", "2", "3", "4", "5"]:
-                input("Invalid option! Press enter to try again...")
+            # Allow tasks to run while waiting for input
+            choice = await asyncio.get_event_loop().run_in_executor(None, input, "Please select an option: ")
+            
             match choice:
                 case "1":
-                    await watch_tweets(twitter_client, config)
+                    if twitter_task and not twitter_task.done():
+                        print("Twitter watch is already running!")
+                    else:
+                        twitter_task = asyncio.create_task(watch_tweets(twitter_client, config))
+                        print("Started watching tweets")
                 case "2":
-                    await watch_truths(truth_client, config)
+                    if twitter_task and not twitter_task.done():
+                        twitter_task.cancel()
+                        print("Stopped watching tweets")
+                    else:
+                        print("Twitter watch is not running!")
                 case "3":
-                    add_new_account(config)
+                    if truth_task and not truth_task.done():
+                        print("Truth watch is already running!")
+                    else:
+                        truth_task = asyncio.create_task(watch_truths(truth_client, config))
+                        print("Started watching truths")
                 case "4":
-                    add_new_recipient(config)
+                    if truth_task and not truth_task.done():
+                        truth_task.cancel()
+                        print("Stopped watching truths")
+                    else:
+                        print("Truth watch is not running!")
                 case "5":
-                    _configure(config)
+                    await asyncio.get_event_loop().run_in_executor(None, add_new_account, config)
+                case "6":
+                    await asyncio.get_event_loop().run_in_executor(None, add_new_recipient, config)
+                case "7":
+                    await asyncio.get_event_loop().run_in_executor(None, _configure, config)
         except KeyboardInterrupt:
             logger.info(f"Quitting due to CTRL+C...")
-            return
-                
+            if twitter_task and not twitter_task.done():
+                twitter_task.cancel()
+            if truth_task and not truth_task.done():
+                truth_task.cancel()
+            await asyncio.sleep(0)  # Let the tasks cancel
+            exit(0)
+
 def _configure(config):
     while True:
         print(f"1: Twitter Bearer Token: {config['twitter']['bearer_token']}")
@@ -236,5 +267,5 @@ def _setup_postal(config):
     except Exception as e:
         logger.error(f"Error initializing Postal client: {str(e)}!")
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
     asyncio.run(main())
