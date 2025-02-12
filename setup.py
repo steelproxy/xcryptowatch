@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="xcryptowatch",
-    version="0.1.0",
+    version="0.1.1",
     author="Collin Rodes",
     author_email="steelproxy@protonmail.com",
     description="A program to monitor crypto trends on social media.",
@@ -15,7 +15,8 @@ setup(
         "postalsend",
         "jsonschema",
         "tweepy",
-        "openai"
+        "openai",
+        "truthbrush",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -25,7 +26,7 @@ setup(
     python_requires='>=3.6',
     entry_points={
         "console_scripts": [
-            "xcryptowatch=xcryptowatch.core:main",
+            "xcryptowatch=xcryptowatch.core:_run_main",
         ],
     },
 )
