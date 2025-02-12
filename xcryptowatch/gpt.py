@@ -8,6 +8,7 @@ __chatgpt_role__ = ("You are a helpful assistant that analyzes social media post
                     "1. If a post **does not** mention cryptocurrency, respond with the string \"nothing\". Make sure it does not include ANY punctuation or extra characters. Simply just that string and nothing else."
                     
                     "2. If a post **does** mention cryptocurrency: "
+                    "- Be aware that 'DOGE' might refer to either the Dogecoin cryptocurrency OR the 'Department Of Government Efficiency'. Carefully analyze the context to determine which one is being referenced. "
                     "- Determine whether the mention is **positive** or **negative**. "
                     "- Summarize the sentiment in 1-2 sentences. "
                     "- Compare the sentiment to **current cryptocurrency market trends** "
@@ -33,7 +34,7 @@ async def analyze_post(post):
         return None
     
     response_message = response.choices[0].message.content.strip()
-    return response_message
+    return f"This post was analyzed and believed to contain relevant information: [{post}]. Thoughts: {response_message}"
 
 async def analyze_posts_concurrently(posts):
     """Analyzes multiple posts concurrently using asyncio.gather."""
