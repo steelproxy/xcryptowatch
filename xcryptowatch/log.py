@@ -32,5 +32,6 @@ def setup_logger(name, log_file, level=logging.DEBUG):
 # Main application logger
 main_logger = setup_logger('xcryptowatch', 'xcryptowatch.log')
 twitter_logger = setup_logger('xcryptowatch_twitter', 'twitter.log')
+truth_logger = setup_logger('xcryptowatch_truth', 'truth.log')
 gpt_logger = setup_logger('xcryptowatch_gpt', 'gpt.log')
 postal_logger = setup_logger('xcryptowatch_postal', "postal.log")
