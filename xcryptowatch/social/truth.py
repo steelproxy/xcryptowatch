@@ -9,7 +9,7 @@ async def watch_truths(client, config):
     await mail.status_update(f"Starting new truth watch at {datetime.datetime.now(datetime.timezone.utc)}.", config)
 
     while True:
-        start_time = datetime.datetime.now(datetime.timezone.utc)
+        start_time = datetime.datetime.now(datetime.timezone.utc)# - datetime.timedelta(days=1)
         to_process = []
         for account in config['watch_accounts']:
             if account.get('platform', '').lower() != 'truth':
@@ -17,8 +17,9 @@ async def watch_truths(client, config):
             account_username = account['username']
             logger.info(f"Fetching posts for @{account_username}...")
             posts = client.pull_statuses(username=account_username, created_after=start_time)
-            if posts:
-                for post in posts:
+            post_list = list(posts)
+            if post_list:
+                for post in post_list:
                     if post['id'] not in watched_posts:
                         watched_posts.append(post['id'])
                     to_process.append(post['content'])
