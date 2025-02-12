@@ -267,5 +267,8 @@ def _setup_postal(config):
     except Exception as e:
         logger.error(f"Error initializing Postal client: {str(e)}!")
 
+def _run_main():
+        asyncio.run(main())
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    _run_main()
