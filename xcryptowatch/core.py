@@ -3,21 +3,22 @@ import tweepy
 from truthbrush import Api as TruthClient
 import postalsend
 import openai
-from xcryptowatch.config_json import create_config, _save_config, load_config, add_new_account, add_new_recipient, twitter_enabled, truth_enabled, postal_enabled
+from xcryptowatch.config_json import create_config, _save_config, load_config, add_new_account, add_new_recipient, twitter_enabled, truth_enabled, postal_enabled, bluesky_enabled
 from xcryptowatch.social.twitter import watch_tweets
 from xcryptowatch.social.truth import watch_truths
+from xcryptowatch.social.bluesky import watch_bluesky
 from xcryptowatch.log import main_logger as logger
 
 async def main():
     logger.info(f"Starting xcryptowatch...")
 
     config = _setup_config()
-    twitter_client, truth_client = _setup_api(config)
+    twitter_client, truth_client, bluesky_client = _setup_api(config)
     logger.info("Initialized successfully!")
 
     twitter_task = None
     truth_task = None
-
+    bluesky_task = None
     
     while True:
         print("Hint: CTRL+C to exit.\n" +
@@ -25,9 +26,11 @@ async def main():
               "2: Stop watching tweets\n" +
               "3: Start watching truths\n" +
               "4: Stop watching truths\n" +
-              "5: Add a new account to watch\n" +
-              "6: Add a new recipient to notify\n" +
-              "7: Configure XCryptoWatch")
+              "5: Start watching bluesky\n" +
+              "6: Stop watching bluesky\n" +
+              "7: Add a new account to watch\n" +
+              "8: Add a new recipient to notify\n" +
+              "9: Configure XCryptoWatch")
         try:
             # Allow tasks to run while waiting for input
             choice = await asyncio.get_event_loop().run_in_executor(None, input, "Please select an option: ")
@@ -58,10 +61,22 @@ async def main():
                     else:
                         print("Truth watch is not running!")
                 case "5":
-                    await asyncio.get_event_loop().run_in_executor(None, add_new_account, config)
+                    if bluesky_task and not bluesky_task.done():
+                        print("Bluesky watch is already running!")
+                    else:
+                        bluesky_task = asyncio.create_task(watch_bluesky(bluesky_client, config))
+                        print("Started watching bluesky")
                 case "6":
-                    await asyncio.get_event_loop().run_in_executor(None, add_new_recipient, config)
+                    if bluesky_task and not bluesky_task.done():
+                        bluesky_task.cancel()
+                        print("Stopped watching bluesky")
+                    else:
+                        print("Bluesky watch is not running!")
                 case "7":
+                    await asyncio.get_event_loop().run_in_executor(None, add_new_account, config)
+                case "8":
+                    await asyncio.get_event_loop().run_in_executor(None, add_new_recipient, config)
+                case "9":
                     await asyncio.get_event_loop().run_in_executor(None, _configure, config)
         except KeyboardInterrupt:
             logger.info(f"Quitting due to CTRL+C...")
@@ -69,6 +84,8 @@ async def main():
                 twitter_task.cancel()
             if truth_task and not truth_task.done():
                 truth_task.cancel()
+            if bluesky_task and not bluesky_task.done():
+                bluesky_task.cancel()
             await asyncio.sleep(0)  # Let the tasks cancel
             exit(0)
 
@@ -83,24 +100,27 @@ def _configure(config):
         print(f"7: Truth Username: {config['truth']['username']}")
         print(f"8: Truth Password: {config['truth']['password']}")
         print(f"9: Truth Check Interval: {config['truth'].get('check_interval', 15)} minutes")
-        print(f"10: OpenAI API Key: {config['openai']['api_key']}")
-        print(f"11: From Email: {config['email']['from_email']}")
-        print(f"12: To Email: {', '.join(config['email']['to_email'])}")
-        print(f"13: Email Subject: {config['email'].get('subject', '')}")
-        print(f"14: Postal Enabled: {config['email']['postal'].get('enabled', False)}")
-        print(f"15: Postal Server: {config['email']['postal'].get('server', '')}")
-        print(f"16: Postal API Key: {config['email']['postal'].get('api_key', '')}")
-        print(f"17: SMTP Enabled: {config['email']['smtp'].get('enabled', False)}")
-        print(f"18: SMTP Host: {config['email']['smtp'].get('host', '')}")
-        print(f"19: SMTP Port: {config['email']['smtp'].get('port', 587)}")
-        print(f"20: SMTP Username: {config['email']['smtp'].get('username', '')}")
-        print(f"21: SMTP Password: {config['email']['smtp'].get('password', '')}")
-        print(f"22: SMTP Use TLS: {config['email']['smtp'].get('use_tls', True)}")
-        print(f"23: Exit")
+        print(f"10: Bluesky Username: {config['bluesky']['username']}")
+        print(f"11: Bluesky Password: {config['bluesky']['password']}")
+        print(f"12: Bluesky Check Interval: {config['bluesky'].get('check_interval', 15)} minutes")
+        print(f"13: OpenAI API Key: {config['openai']['api_key']}")
+        print(f"14: From Email: {config['email']['from_email']}")
+        print(f"15: To Email: {', '.join(config['email']['to_email'])}")
+        print(f"16: Email Subject: {config['email'].get('subject', '')}")
+        print(f"17: Postal Enabled: {config['email']['postal'].get('enabled', False)}")
+        print(f"18: Postal Server: {config['email']['postal'].get('server', '')}")
+        print(f"19: Postal API Key: {config['email']['postal'].get('api_key', '')}")
+        print(f"20: SMTP Enabled: {config['email']['smtp'].get('enabled', False)}")
+        print(f"21: SMTP Host: {config['email']['smtp'].get('host', '')}")
+        print(f"22: SMTP Port: {config['email']['smtp'].get('port', 587)}")
+        print(f"23: SMTP Username: {config['email']['smtp'].get('username', '')}")
+        print(f"24: SMTP Password: {config['email']['smtp'].get('password', '')}")
+        print(f"25: SMTP Use TLS: {config['email']['smtp'].get('use_tls', True)}")
+        print(f"26: Exit")
         
-        choice = input("Select a number to update a value (or 23 to exit): ")
+        choice = input("Select a number to update a value (or 26 to exit): ")
         
-        if choice == "23":
+        if choice == "26":
             break
         
         options = {
@@ -113,19 +133,22 @@ def _configure(config):
             "7": ("truth", "username"),
             "8": ("truth", "password"),
             "9": ("truth", "check_interval"),
-            "10": ("openai", "api_key"),
-            "11": ("email", "from_email"),
-            "12": ("email", "to_email"),
-            "13": ("email", "subject"),
-            "14": ("email.postal", "enabled"),
-            "15": ("email.postal", "server"),
-            "16": ("email.postal", "api_key"),
-            "17": ("email.smtp", "enabled"),
-            "18": ("email.smtp", "host"),
-            "19": ("email.smtp", "port"),
-            "20": ("email.smtp", "username"),
-            "21": ("email.smtp", "password"),
-            "22": ("email.smtp", "use_tls"),
+            "10": ("bluesky", "username"),
+            "11": ("bluesky", "password"),
+            "12": ("bluesky", "check_interval"),
+            "13": ("openai", "api_key"),
+            "14": ("email", "from_email"),
+            "15": ("email", "to_email"),
+            "16": ("email", "subject"),
+            "17": ("email.postal", "enabled"),
+            "18": ("email.postal", "server"),
+            "19": ("email.postal", "api_key"),
+            "20": ("email.smtp", "enabled"),
+            "21": ("email.smtp", "host"),
+            "22": ("email.smtp", "port"),
+            "23": ("email.smtp", "username"),
+            "24": ("email.smtp", "password"),
+            "25": ("email.smtp", "use_tls"),
         }
         
         if choice in options:
@@ -212,7 +235,16 @@ def _setup_api(config):
         _setup_postal(config)
     else:
         logger.warning("Postal is disabled! Skipping Postal client initialization.")
-    return twitter_client, truth_client
+
+    # Bluesky
+    if bluesky_enabled(config):
+        logger.info("Initializing Bluesky client...")
+        bluesky_client = _setup_bluesky(config)
+    else:
+        logger.warning("Bluesky is disabled! Skipping Bluesky client initialization.")
+        bluesky_client = None
+
+    return twitter_client, truth_client, bluesky_client
 
 def _setup_twitter(config):
     logger.debug(f"Bearer Token: {config['twitter']['bearer_token']}")
@@ -266,6 +298,18 @@ def _setup_postal(config):
         postalsend.push_setup(config['email']['to_email'], config['email']['from_email'])
     except Exception as e:
         logger.error(f"Error initializing Postal client: {str(e)}!")
+
+def _setup_bluesky(config):
+    logger.debug(f"Username: {config['bluesky']['username']}")
+    logger.debug(f"Password: {config['bluesky']['password']}")
+    try:
+        from atproto import Client
+        bluesky_client = Client()
+        bluesky_client.login(config['bluesky']['username'], config['bluesky']['password'])
+    except Exception as e:
+        logger.error(f"Failed to initialize Bluesky API client: {e}! Quitting...")
+        exit(1)
+    return bluesky_client
 
 def _run_main():
         asyncio.run(main())

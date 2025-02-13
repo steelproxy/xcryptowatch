@@ -35,6 +35,15 @@ config_schema = {
             },
             "required": ["username", "password", "check_interval"],
         },
+        "bluesky": {
+            "type": "object",
+            "properties": {
+                "username": {"type": "string"},
+                "password": {"type": "string"},
+                "check_interval": {"type": "integer", "minimum": 1}
+            },
+            "required": ["username", "password", "check_interval"],
+        },
         "openai": {
             "type": "object",
             "properties": {
@@ -78,13 +87,13 @@ config_schema = {
                 "type": "object",
                 "properties": {
                     "username": {"type": "string"},
-                    "platform": {"type": "string", "enum": ["twitter", "truth"]}
+                    "platform": {"type": "string", "enum": ["twitter", "truth", "bluesky"]}
                 },
                 "required": ["username", "platform"],
             },
         },
     },
-    "required": ["version", "twitter", "openai", "watch_accounts"],
+    "required": ["version", "twitter", "truth", "bluesky", "openai", "watch_accounts"],
 }
 
 def twitter_enabled(config):
@@ -100,6 +109,12 @@ def truth_enabled(config):
     return all([
         config['truth']['username'],
         config['truth']['password']
+    ])
+
+def bluesky_enabled(config):
+    return all([
+        config['bluesky']['username'],
+        config['bluesky']['password']
     ])
 
 def postal_enabled(config):
@@ -143,6 +158,12 @@ def create_config():
         'username': input("Enter your Truth username (leave blank for disabled): "),
         'password': input("Enter your Truth password (leave blank for disabled): "),
         'check_interval': int(input("Enter check interval in minutes for Truth (default 15): ") or 15)
+    }
+
+    bluesky_config = {
+        'username': input("Enter your Bluesky username (leave blank for disabled): "),
+        'password': input("Enter your Bluesky password (leave blank for disabled): "),
+        'check_interval': int(input("Enter check interval in minutes for Bluesky (default 15): ") or 15)
     }
 
     openai_config = {'api_key': input("Enter your OpenAI API key: ")}
@@ -190,6 +211,7 @@ def create_config():
         'version': __version__,
         'twitter': twitter_config,
         'truth': truth_config,
+        'bluesky': bluesky_config,
         'openai': openai_config,
         'email': email_config,
         'watch_accounts': []
@@ -200,7 +222,7 @@ def create_config():
 
 def add_new_account(config):
     new_account = input("Enter the account to watch (without @): ")
-    valid_platforms = ['twitter', 'truth']
+    valid_platforms = ['twitter', 'truth', 'bluesky']
     platform = input(f"Enter the platform to watch ({' or '.join(valid_platforms)}): ").lower()
     
     if platform not in valid_platforms:

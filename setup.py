@@ -17,6 +17,7 @@ setup(
         "tweepy",
         "openai",
         "truthbrush",
+        "atproto",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
