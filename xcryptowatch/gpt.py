@@ -34,6 +34,8 @@ async def analyze_post(post):
         return None
     
     response_message = response.choices[0].message.content.strip()
+    if response_message == "nothing":
+        return response_message
     return f"This post was analyzed and believed to contain relevant information: [{post}]. Thoughts: {response_message}"
 
 async def analyze_posts_concurrently(posts):
