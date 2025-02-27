@@ -12,7 +12,7 @@ async def watch_tweets(client, config):
     await mail.status_update(f"Starting new twitter watch at {datetime.datetime.now(datetime.timezone.utc)}.", config)
     
     while True:
-        start_time = datetime.datetime.now(datetime.timezone.utc) # - timedelta(days=7)
+        start_time = datetime.datetime.now(datetime.timezone.utc) # - datetime.timedelta(days=7)
         to_process = []
         for account in config['watch_accounts']:
             if account.get('platform', '').lower() != 'twitter':

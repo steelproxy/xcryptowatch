@@ -8,8 +8,11 @@ from xcryptowatch.social.twitter import watch_tweets
 from xcryptowatch.social.truth import watch_truths
 from xcryptowatch.social.bluesky import watch_bluesky
 from xcryptowatch.log import main_logger as logger
+from xcryptowatch import __version__
 
 async def main():
+    logger.info(f"xcryptowatch version: {__version__}")
+    logger.info(f"For more information, visit https://github.com/steelproxy/xcryptowatch")
     logger.info(f"Starting xcryptowatch...")
 
     config = _setup_config()
